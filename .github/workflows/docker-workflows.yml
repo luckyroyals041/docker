@@ -1,4 +1,4 @@
-name: Ubuntu Docker with Monitoring Tools
+name: Build and Push to Docker Hub
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -15,8 +15,15 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
-      - name: Build and run container
+      - name: Log in to Docker Hub
         run: |
-          docker build -t ubuntu-tools .
-          docker run --rm ubuntu-tools
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ubuntu-tools:latest .
+
+      - name: Push Docker Image to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ubuntu-tools:latest
 
